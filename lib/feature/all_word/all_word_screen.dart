@@ -1,7 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
-import 'package:my_dictionary/feature/add_word/add_word_page.dart';
+import 'package:my_dictionary/feature/add_word/add_word_screen.dart';
 
 // ─── Design Tokens (from Stitch "All Words" project) ───────────────────────
 const _kPrimary = Color(0xFF4C99E6);

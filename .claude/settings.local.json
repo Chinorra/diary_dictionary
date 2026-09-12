@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Skill(update-config)",
+      "Bash(dart --version)",
+      "Bash(flutter --version)",
+      "Bash(chmod +x /Users/tongminh/Desktop/my_dictionary/.claude/hooks/*.py /Users/tongminh/Desktop/my_dictionary/.claude/hooks/*.sh)",
+      "Bash(/Users/tongminh/Desktop/my_dictionary/.claude/hooks/validate-bash.py)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(/Users/tongminh/Desktop/my_dictionary/.claude/hooks/format-code.sh)",
+      "Bash(/Users/tongminh/Desktop/my_dictionary/.claude/hooks/log-bash.sh)",
+      "Read(//Users/tongminh/.claude/**)",
+      "Bash(/Users/tongminh/Desktop/my_dictionary/.claude/hooks/analyze-dart.sh)"
     ]
   }
 }

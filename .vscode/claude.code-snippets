@@ -1,0 +1,13 @@
+{
+  "Dev Agent": {
+    "prefix": "/dev",
+    "body": [
+      "Read the following agent prompt and act as this agent:",
+      "",
+      "${1:${file:agents/dev.md}}",
+      "",
+      "${2:your task here}",
+    ],
+    "description": "Invoke dev engineering agent",
+  },
+}

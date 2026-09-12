@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/validate-bash.py",
+            "timeout": 10,
+            "statusMessage": "validate-bash"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/log-bash.sh",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/format-code.sh",
+            "timeout": 15,
+            "statusMessage": "dart format"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/analyze-dart.sh",
+            "timeout": 90,
+            "statusMessage": "flutter analyze"
+          }
+        ]
+      }
+    ]
+  }
+}
