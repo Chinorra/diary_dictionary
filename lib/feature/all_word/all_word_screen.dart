@@ -184,50 +184,26 @@ class _AllWordAppBar extends StatelessWidget {
         context.select<AllWordBloc, bool>((bloc) => bloc.state.searchVisible);
 
     return SliverAppBar(
-      expandedHeight: 110,
       pinned: true,
       backgroundColor: kSurface,
       elevation: 0,
       shadowColor: Colors.transparent,
       surfaceTintColor: kSurface,
-      flexibleSpace: const FlexibleSpaceBar(
-        titlePadding: EdgeInsets.only(left: 20, bottom: 14),
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Vocabulary Diary',
-              style: TextStyle(
-                color: kTextSecondary,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-              ),
-            ),
-            SizedBox(height: 1),
-            Text(
-              'All word',
-              style: TextStyle(
-                color: kTextPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-              ),
-            ),
-          ],
-        ),
-        background: DecoratedBox(
-          decoration: BoxDecoration(
-            color: kSurface,
-            border: Border(bottom: BorderSide(color: kDivider)),
-          ),
-          child: SizedBox.expand(),
+      iconTheme: const IconThemeData(color: kTextPrimary),
+      titleSpacing: 0,
+      title: const Text(
+        'All word',
+        style: TextStyle(
+          color: kTextPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.3,
         ),
       ),
+      shape: const Border(bottom: BorderSide(color: kDivider)),
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 12, top: 8),
+          padding: const EdgeInsets.only(right: 12),
           child: IconButton(
             tooltip: searchVisible ? 'Close search' : 'Search words',
             icon: Icon(

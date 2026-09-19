@@ -184,53 +184,28 @@ class _SingleCategoryAppBar extends StatelessWidget {
     );
 
     return SliverAppBar(
-      expandedHeight: 110,
       pinned: true,
       backgroundColor: kSurface,
       elevation: 0,
       shadowColor: Colors.transparent,
       surfaceTintColor: kSurface,
       iconTheme: const IconThemeData(color: kTextPrimary),
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.only(left: 20, bottom: 14),
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Category',
-              style: TextStyle(
-                color: kTextSecondary,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 1),
-            Text(
-              category,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: kTextPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-              ),
-            ),
-          ],
-        ),
-        background: const DecoratedBox(
-          decoration: BoxDecoration(
-            color: kSurface,
-            border: Border(bottom: BorderSide(color: kDivider)),
-          ),
-          child: SizedBox.expand(),
+      titleSpacing: 0,
+      title: Text(
+        category,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: kTextPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.3,
         ),
       ),
+      shape: const Border(bottom: BorderSide(color: kDivider)),
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 12, top: 8),
+          padding: const EdgeInsets.only(right: 12),
           child: IconButton(
             tooltip: searchVisible ? 'Close search' : 'Search words',
             icon: Icon(

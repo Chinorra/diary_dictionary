@@ -104,15 +104,17 @@ class _AddWordViewState extends State<_AddWordView> {
             elevation: 0,
             surfaceTintColor: kSurface,
             iconTheme: const IconThemeData(color: kTextPrimary),
+            titleSpacing: 0,
             title: const Text(
               'Add New Word',
               style: TextStyle(
                 color: kTextPrimary,
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
+                letterSpacing: -0.3,
               ),
             ),
+            shape: const Border(bottom: BorderSide(color: kDivider)),
           ),
           body: GestureDetector(
             behavior: HitTestBehavior.opaque,

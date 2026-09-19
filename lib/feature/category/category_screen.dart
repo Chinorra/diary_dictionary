@@ -126,48 +126,23 @@ class _CategoryAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SliverAppBar(
-      expandedHeight: 110,
       pinned: true,
       backgroundColor: kSurface,
       elevation: 0,
       shadowColor: Colors.transparent,
       surfaceTintColor: kSurface,
       iconTheme: IconThemeData(color: kTextPrimary),
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: EdgeInsets.only(left: 20, bottom: 14),
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Vocabulary Diary',
-              style: TextStyle(
-                color: kTextSecondary,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-              ),
-            ),
-            SizedBox(height: 1),
-            Text(
-              'Categories',
-              style: TextStyle(
-                color: kTextPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-              ),
-            ),
-          ],
-        ),
-        background: DecoratedBox(
-          decoration: BoxDecoration(
-            color: kSurface,
-            border: Border(bottom: BorderSide(color: kDivider)),
-          ),
-          child: SizedBox.expand(),
+      titleSpacing: 0,
+      title: Text(
+        'Categories',
+        style: TextStyle(
+          color: kTextPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.3,
         ),
       ),
+      shape: Border(bottom: BorderSide(color: kDivider)),
     );
   }
 }
