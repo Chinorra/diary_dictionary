@@ -4,6 +4,7 @@ import 'package:my_dictionary/feature/add_word/add_word_screen.dart';
 import 'package:my_dictionary/feature/common/color/color.dart';
 import 'package:my_dictionary/feature/common/widget/word_card.dart';
 import 'package:my_dictionary/feature/home_screen/home_screen.dart';
+import 'package:my_dictionary/feature/word_detail/word_detail_screen.dart';
 
 import '../../database/database.dart';
 import 'bloc/all_word_bloc.dart';
@@ -22,13 +23,15 @@ class AllWordScreen extends StatelessWidget {
       create: (_) => AllWordBloc(
         AllWordRepository(database: database ?? AppDatabase.instance),
       )..add(const AllWordsRequested()),
-      child: const _AllWordView(),
+      child: _AllWordView(database: database),
     );
   }
 }
 
 class _AllWordView extends StatefulWidget {
-  const _AllWordView();
+  const _AllWordView({this.database});
+
+  final AppDatabase? database;
 
   @override
   State<_AllWordView> createState() => _AllWordViewState();
@@ -64,7 +67,9 @@ class _AllWordViewState extends State<_AllWordView>
 
   Future<void> _openAddWord() async {
     await Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const AddWordPage()),
+      MaterialPageRoute<void>(
+        builder: (_) => AddWordPage(database: widget.database),
+      ),
     );
     if (!mounted) return;
     context.read<AllWordBloc>().add(const AllWordsRequested());
@@ -89,7 +94,11 @@ class _AllWordViewState extends State<_AllWordView>
           backgroundColor: kBackground,
           body: FadeTransition(
             opacity: _fadeAnimation,
-            child: _Body(state: state, searchController: _searchController),
+            child: _Body(
+              state: state,
+              searchController: _searchController,
+              database: widget.database,
+            ),
           ),
           floatingActionButton: _AddWordFAB(onPressed: _openAddWord),
         );
@@ -99,10 +108,15 @@ class _AllWordViewState extends State<_AllWordView>
 }
 
 class _Body extends StatelessWidget {
-  const _Body({required this.state, required this.searchController});
+  const _Body({
+    required this.state,
+    required this.searchController,
+    this.database,
+  });
 
   final AllWordState state;
   final TextEditingController searchController;
+  final AppDatabase? database;
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +169,7 @@ class _Body extends StatelessWidget {
     final slivers = <Widget>[];
     for (final entry in grouped.entries) {
       slivers.add(_LetterHeader(letter: entry.key));
-      slivers.add(_WordSection(words: entry.value));
+      slivers.add(_WordSection(words: entry.value, database: database));
     }
     return slivers;
   }
@@ -345,9 +359,21 @@ class _LetterHeader extends StatelessWidget {
 }
 
 class _WordSection extends StatelessWidget {
-  const _WordSection({required this.words});
+  const _WordSection({required this.words, this.database});
 
   final List<Word> words;
+  final AppDatabase? database;
+
+  Future<void> _openDetail(BuildContext context, Word word) async {
+    final bloc = context.read<AllWordBloc>();
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => WordDetailScreen(word: word, database: database),
+      ),
+    );
+    // The word may have been edited, so reload the list.
+    bloc.add(const AllWordsRequested());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -366,6 +392,7 @@ class _WordSection extends StatelessWidget {
                 partOfSpeech: word.partOfSpeech,
                 definition: word.definition,
               ),
+              onTap: () => _openDetail(context, word),
             ),
           );
         },

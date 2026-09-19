@@ -5,7 +5,10 @@ import 'package:my_dictionary/feature/home_screen/home_screen.dart';
 class WordCard extends StatefulWidget {
   final TodayWord word;
 
-  const WordCard({super.key, required this.word});
+  /// Called when the card is tapped, typically to open the word's detail.
+  final VoidCallback? onTap;
+
+  const WordCard({super.key, required this.word, this.onTap});
 
   @override
   State<WordCard> createState() => _WordCardState();
@@ -49,7 +52,7 @@ class _WordCardState extends State<WordCard> with SingleTickerProviderStateMixin
         setState(() => _isPressed = false);
         _pressController.reverse();
       },
-      onTap: () {},
+      onTap: widget.onTap,
       child: ScaleTransition(
         scale: _scaleAnim,
         child: AnimatedContainer(

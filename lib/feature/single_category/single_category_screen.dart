@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:my_dictionary/feature/common/color/color.dart';
 import 'package:my_dictionary/feature/common/widget/word_card.dart';
 import 'package:my_dictionary/feature/home_screen/home_screen.dart';
+import 'package:my_dictionary/feature/word_detail/word_detail_screen.dart';
 
 import '../../database/database.dart';
 import 'bloc/single_category_bloc.dart';
@@ -30,13 +31,15 @@ class SingleCategoryScreen extends StatelessWidget {
         SingleCategoryRepository(database: database ?? AppDatabase.instance),
         category: category,
       )..add(const CategoryWordsRequested()),
-      child: const _SingleCategoryView(),
+      child: _SingleCategoryView(database: database),
     );
   }
 }
 
 class _SingleCategoryView extends StatefulWidget {
-  const _SingleCategoryView();
+  const _SingleCategoryView({this.database});
+
+  final AppDatabase? database;
 
   @override
   State<_SingleCategoryView> createState() => _SingleCategoryViewState();
@@ -89,7 +92,11 @@ class _SingleCategoryViewState extends State<_SingleCategoryView>
           backgroundColor: kBackground,
           body: FadeTransition(
             opacity: _fadeAnimation,
-            child: _Body(state: state, searchController: _searchController),
+            child: _Body(
+              state: state,
+              searchController: _searchController,
+              database: widget.database,
+            ),
           ),
         );
       },
@@ -98,10 +105,15 @@ class _SingleCategoryViewState extends State<_SingleCategoryView>
 }
 
 class _Body extends StatelessWidget {
-  const _Body({required this.state, required this.searchController});
+  const _Body({
+    required this.state,
+    required this.searchController,
+    this.database,
+  });
 
   final SingleCategoryState state;
   final TextEditingController searchController;
+  final AppDatabase? database;
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +166,7 @@ class _Body extends StatelessWidget {
     final slivers = <Widget>[];
     for (final entry in grouped.entries) {
       slivers.add(_LetterHeader(letter: entry.key));
-      slivers.add(_WordSection(words: entry.value));
+      slivers.add(_WordSection(words: entry.value, database: database));
     }
     return slivers;
   }
@@ -352,9 +364,21 @@ class _LetterHeader extends StatelessWidget {
 }
 
 class _WordSection extends StatelessWidget {
-  const _WordSection({required this.words});
+  const _WordSection({required this.words, this.database});
 
   final List<Word> words;
+  final AppDatabase? database;
+
+  Future<void> _openDetail(BuildContext context, Word word) async {
+    final bloc = context.read<SingleCategoryBloc>();
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => WordDetailScreen(word: word, database: database),
+      ),
+    );
+    // The word may have been edited, or moved to another category.
+    bloc.add(const CategoryWordsRequested());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -373,6 +397,7 @@ class _WordSection extends StatelessWidget {
                 partOfSpeech: word.partOfSpeech,
                 definition: word.definition,
               ),
+              onTap: () => _openDetail(context, word),
             ),
           );
         },
