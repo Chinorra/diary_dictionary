@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_dictionary/feature/add_word/add_word_screen.dart';
 import 'package:my_dictionary/feature/all_word/all_word_screen.dart';
+import 'package:my_dictionary/feature/category/category_screen.dart';
 import 'package:my_dictionary/feature/common/color/color.dart';
 import 'package:my_dictionary/feature/common/widget/word_card.dart';
 
@@ -85,6 +86,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  void _navigateToCategories() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const CategoryScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,6 +139,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
       bottomNavigationBar: _MinimalBottomNav(
         onAllWordsTap: _navigateToAllWords,
+        onCategoriesTap: _navigateToCategories,
         onAddTap: _navigateToAddWord,
       ),
     );
@@ -413,10 +421,12 @@ class _HeaderIconButton extends StatelessWidget {
 // ─── Minimal Bottom Nav ───────────────────────────────────────────────────────
 class _MinimalBottomNav extends StatelessWidget {
   final VoidCallback onAllWordsTap;
+  final VoidCallback onCategoriesTap;
   final VoidCallback onAddTap;
 
   const _MinimalBottomNav({
     required this.onAllWordsTap,
+    required this.onCategoriesTap,
     required this.onAddTap,
   });
 
@@ -464,7 +474,7 @@ class _MinimalBottomNav extends StatelessWidget {
                   // Categories tab
                   Expanded(
                     child: GestureDetector(
-                      onTap: () {},
+                      onTap: onCategoriesTap,
                       behavior: HitTestBehavior.opaque,
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,

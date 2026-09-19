@@ -1,40 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:my_dictionary/feature/add_word/add_word_screen.dart';
 import 'package:my_dictionary/feature/common/color/color.dart';
 import 'package:my_dictionary/feature/common/widget/word_card.dart';
 import 'package:my_dictionary/feature/home_screen/home_screen.dart';
 
 import '../../database/database.dart';
-import 'bloc/all_word_bloc.dart';
-import 'bloc/all_word_event.dart';
-import 'bloc/all_word_state.dart';
-import 'repository/all_word_repository.dart';
+import 'bloc/single_category_bloc.dart';
+import 'bloc/single_category_event.dart';
+import 'bloc/single_category_state.dart';
+import 'repository/single_category_repository.dart';
 
-class AllWordScreen extends StatelessWidget {
-  const AllWordScreen({super.key, this.database});
+/// Displays every saved word belonging to one selected category, using the
+/// same alphabetical sections, [WordCard] and local search as the All Word
+/// screen.
+class SingleCategoryScreen extends StatelessWidget {
+  const SingleCategoryScreen({
+    super.key,
+    required this.category,
+    this.database,
+  });
 
+  final String category;
   final AppDatabase? database;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => AllWordBloc(
-        AllWordRepository(database: database ?? AppDatabase.instance),
-      )..add(const AllWordsRequested()),
-      child: const _AllWordView(),
+      create: (_) => SingleCategoryBloc(
+        SingleCategoryRepository(database: database ?? AppDatabase.instance),
+        category: category,
+      )..add(const CategoryWordsRequested()),
+      child: const _SingleCategoryView(),
     );
   }
 }
 
-class _AllWordView extends StatefulWidget {
-  const _AllWordView();
+class _SingleCategoryView extends StatefulWidget {
+  const _SingleCategoryView();
 
   @override
-  State<_AllWordView> createState() => _AllWordViewState();
+  State<_SingleCategoryView> createState() => _SingleCategoryViewState();
 }
 
-class _AllWordViewState extends State<_AllWordView>
+class _SingleCategoryViewState extends State<_SingleCategoryView>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
 
@@ -62,17 +70,9 @@ class _AllWordViewState extends State<_AllWordView>
     super.dispose();
   }
 
-  Future<void> _openAddWord() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const AddWordPage()),
-    );
-    if (!mounted) return;
-    context.read<AllWordBloc>().add(const AllWordsRequested());
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AllWordBloc, AllWordState>(
+    return BlocConsumer<SingleCategoryBloc, SingleCategoryState>(
       listenWhen: (previous, current) =>
           previous.searchQuery != current.searchQuery,
       listener: (context, state) {
@@ -91,7 +91,6 @@ class _AllWordViewState extends State<_AllWordView>
             opacity: _fadeAnimation,
             child: _Body(state: state, searchController: _searchController),
           ),
-          floatingActionButton: _AddWordFAB(onPressed: _openAddWord),
         );
       },
     );
@@ -101,7 +100,7 @@ class _AllWordViewState extends State<_AllWordView>
 class _Body extends StatelessWidget {
   const _Body({required this.state, required this.searchController});
 
-  final AllWordState state;
+  final SingleCategoryState state;
   final TextEditingController searchController;
 
   @override
@@ -109,7 +108,7 @@ class _Body extends StatelessWidget {
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
-        const _AllWordAppBar(),
+        _SingleCategoryAppBar(category: state.category),
         if (state.searchVisible)
           SliverToBoxAdapter(
             child: _SearchField(controller: searchController),
@@ -119,7 +118,7 @@ class _Body extends StatelessWidget {
             hasScrollBody: false,
             child: Center(child: CircularProgressIndicator(color: kPrimary)),
           )
-        else if (state.status == AllWordStatus.error)
+        else if (state.status == SingleCategoryStatus.error)
           SliverFillRemaining(
             hasScrollBody: false,
             child: _ErrorState(message: state.errorMessage),
@@ -129,7 +128,7 @@ class _Body extends StatelessWidget {
             hasScrollBody: false,
             child: _EmptyState(
               icon: Icons.menu_book_rounded,
-              title: 'No words yet',
+              title: 'No words in this category yet',
               subtitle: 'Start adding new words to your diary.',
             ),
           )
@@ -138,7 +137,7 @@ class _Body extends StatelessWidget {
             hasScrollBody: false,
             child: _EmptyState(
               icon: Icons.search_off_rounded,
-              title: 'No words found',
+              title: 'No matching words found',
               subtitle: 'Try a different search term.',
             ),
           )
@@ -146,7 +145,7 @@ class _Body extends StatelessWidget {
           _WordCount(count: state.filteredWords.length),
           ..._sections(state.groupedWords),
         ],
-        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        const SliverToBoxAdapter(child: SizedBox(height: 40)),
       ],
     );
   }
@@ -161,13 +160,16 @@ class _Body extends StatelessWidget {
   }
 }
 
-class _AllWordAppBar extends StatelessWidget {
-  const _AllWordAppBar();
+class _SingleCategoryAppBar extends StatelessWidget {
+  const _SingleCategoryAppBar({required this.category});
+
+  final String category;
 
   @override
   Widget build(BuildContext context) {
-    final searchVisible =
-        context.select<AllWordBloc, bool>((bloc) => bloc.state.searchVisible);
+    final searchVisible = context.select<SingleCategoryBloc, bool>(
+      (bloc) => bloc.state.searchVisible,
+    );
 
     return SliverAppBar(
       expandedHeight: 110,
@@ -176,14 +178,15 @@ class _AllWordAppBar extends StatelessWidget {
       elevation: 0,
       shadowColor: Colors.transparent,
       surfaceTintColor: kSurface,
-      flexibleSpace: const FlexibleSpaceBar(
-        titlePadding: EdgeInsets.only(left: 20, bottom: 14),
+      iconTheme: const IconThemeData(color: kTextPrimary),
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 14),
         title: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Vocabulary Diary',
+            const Text(
+              'Category',
               style: TextStyle(
                 color: kTextSecondary,
                 fontSize: 11,
@@ -191,10 +194,12 @@ class _AllWordAppBar extends StatelessWidget {
                 letterSpacing: 0.5,
               ),
             ),
-            SizedBox(height: 1),
+            const SizedBox(height: 1),
             Text(
-              'All word',
-              style: TextStyle(
+              category,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
                 color: kTextPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -203,7 +208,7 @@ class _AllWordAppBar extends StatelessWidget {
             ),
           ],
         ),
-        background: DecoratedBox(
+        background: const DecoratedBox(
           decoration: BoxDecoration(
             color: kSurface,
             border: Border(bottom: BorderSide(color: kDivider)),
@@ -221,8 +226,9 @@ class _AllWordAppBar extends StatelessWidget {
               color: kTextPrimary,
               size: 22,
             ),
-            onPressed: () =>
-                context.read<AllWordBloc>().add(const SearchToggled()),
+            onPressed: () => context
+                .read<SingleCategoryBloc>()
+                .add(const CategorySearchToggled()),
           ),
         ),
       ],
@@ -262,7 +268,7 @@ class _SearchField extends StatelessWidget {
             fontWeight: FontWeight.w400,
           ),
           decoration: InputDecoration(
-            hintText: 'Search words...',
+            hintText: 'Search in this category...',
             hintStyle: TextStyle(
               fontSize: 15,
               color: kTextSecondary.withValues(alpha: 0.7),
@@ -275,8 +281,9 @@ class _SearchField extends StatelessWidget {
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 14),
           ),
-          onChanged: (value) =>
-              context.read<AllWordBloc>().add(SearchQueryChanged(value)),
+          onChanged: (value) => context
+              .read<SingleCategoryBloc>()
+              .add(CategorySearchQueryChanged(value)),
         ),
       ),
     );
@@ -397,6 +404,7 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -439,7 +447,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              message ?? 'Unable to load your words.',
+              message ?? 'Unable to load words in this category.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 16,
@@ -449,8 +457,9 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () =>
-                  context.read<AllWordBloc>().add(const AllWordsRequested()),
+              onPressed: () => context
+                  .read<SingleCategoryBloc>()
+                  .add(const CategoryWordsRequested()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: kPrimary,
                 foregroundColor: Colors.white,
@@ -469,38 +478,6 @@ class _ErrorState extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _AddWordFAB extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _AddWordFAB({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: kPrimary.withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: FloatingActionButton(
-        onPressed: onPressed,
-        backgroundColor: kPrimary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Icon(Icons.add_rounded, size: 26),
       ),
     );
   }

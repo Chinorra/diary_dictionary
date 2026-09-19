@@ -17,9 +17,11 @@ class Words extends Table {
 
 @DriftDatabase(tables: [Words])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(connection.openConnection());
+  AppDatabase._() : super(connection.openConnection());
 
   AppDatabase.forTesting(super.executor);
+
+  static final AppDatabase instance = AppDatabase._();
 
   @override
   int get schemaVersion => 1;
@@ -34,4 +36,22 @@ class AppDatabase extends _$AppDatabase {
 
   Future<Word?> findByWord(String word) =>
       (select(words)..where((w) => w.word.equals(word))).getSingleOrNull();
+
+  Future<List<Word>> getWordsByCategory(String category) => (select(words)
+        ..where((w) => w.category.equals(category))
+        ..orderBy([(w) => OrderingTerm.desc(w.createdAt)]))
+      .get();
+
+  Future<Map<String, int>> getWordCountByCategory() async {
+    final wordCount = words.id.count();
+    final query = selectOnly(words)
+      ..addColumns([words.category, wordCount])
+      ..groupBy([words.category]);
+
+    final rows = await query.get();
+    return {
+      for (final row in rows)
+        row.read(words.category)!: row.read(wordCount) ?? 0,
+    };
+  }
 }

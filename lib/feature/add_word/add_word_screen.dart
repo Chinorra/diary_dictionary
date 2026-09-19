@@ -20,7 +20,7 @@ class AddWordPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => AddWordBloc(
-        AddWordRepository(database: database ?? AppDatabase()),
+        AddWordRepository(database: database ?? AppDatabase.instance),
       ),
       child: const _AddWordView(),
     );
@@ -74,9 +74,12 @@ class _AddWordViewState extends State<_AddWordView> {
   Widget build(BuildContext context) {
     return BlocConsumer<AddWordBloc, AddWordState>(
       listenWhen: (previous, current) =>
-          previous.status != current.status || previous.errorMessage != current.errorMessage || previous.validationError != current.validationError,
+          previous.status != current.status ||
+          previous.errorMessage != current.errorMessage ||
+          previous.validationError != current.validationError,
       listener: (context, state) {
         if (state.status == AddWordStatus.saved) {
+          FocusManager.instance.primaryFocus?.unfocus();
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -142,7 +145,9 @@ class _AddWordViewState extends State<_AddWordView> {
                       controller: _definitionController,
                       hint: 'Enter or edit the definition',
                       minLines: 3,
-                      onChanged: (value) => context.read<AddWordBloc>().add(DefinitionChanged(value)),
+                      onChanged: (value) => context
+                          .read<AddWordBloc>()
+                          .add(DefinitionChanged(value)),
                     ),
                     const SizedBox(height: 20),
                     const _FieldLabel('Example sentence'),
@@ -151,7 +156,9 @@ class _AddWordViewState extends State<_AddWordView> {
                       controller: _exampleController,
                       hint: 'Enter an example sentence',
                       minLines: 2,
-                      onChanged: (value) => context.read<AddWordBloc>().add(ExampleChanged(value)),
+                      onChanged: (value) => context
+                          .read<AddWordBloc>()
+                          .add(ExampleChanged(value)),
                     ),
                     const SizedBox(height: 20),
                     const _FieldLabel('Image'),
@@ -192,17 +199,21 @@ class _SearchSectionState extends State<_SearchSection> {
   @override
   void didUpdateWidget(_SearchSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _syncPortalVisibility();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _syncPortalVisibility());
   }
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _syncPortalVisibility());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _syncPortalVisibility());
   }
 
   void _syncPortalVisibility() {
-    final shouldShow = widget.state.suggestionsVisible && widget.state.suggestions.isNotEmpty;
+    if (!mounted) return;
+    final shouldShow =
+        widget.state.suggestionsVisible && widget.state.suggestions.isNotEmpty;
     if (shouldShow && !_portal.isShowing) {
       _portal.show();
     } else if (!shouldShow && _portal.isShowing) {
@@ -379,7 +390,10 @@ class _TranslateButton extends StatelessWidget {
       child: SizedBox(
         height: 36,
         child: ElevatedButton(
-          onPressed: isBusy ? null : () => context.read<AddWordBloc>().add(const TranslateRequested()),
+          onPressed: isBusy
+              ? null
+              : () =>
+                  context.read<AddWordBloc>().add(const TranslateRequested()),
           style: ElevatedButton.styleFrom(
             backgroundColor: kPrimary,
             foregroundColor: Colors.white,
@@ -448,7 +462,8 @@ class _CategoryDropdown extends StatelessWidget {
         child: DropdownButton<String>(
           value: category,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: kTextSecondary),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: kTextSecondary),
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -579,7 +594,8 @@ class _ImagePicker extends StatelessWidget {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => bloc.add(const ImageRemoved()),
-                        icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                        icon:
+                            const Icon(Icons.delete_outline_rounded, size: 18),
                         label: const Text('Remove'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: kTextSecondary,
@@ -611,7 +627,8 @@ class _ImagePicker extends StatelessWidget {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_photo_alternate_outlined, color: kTextSecondary),
+                    Icon(Icons.add_photo_alternate_outlined,
+                        color: kTextSecondary),
                     SizedBox(width: 8),
                     Text(
                       '+ Add Image',
@@ -649,7 +666,9 @@ class _SaveButton extends StatelessWidget {
     return SizedBox(
       height: 52,
       child: ElevatedButton(
-        onPressed: isSaving ? null : () => context.read<AddWordBloc>().add(const SaveRequested()),
+        onPressed: isSaving
+            ? null
+            : () => context.read<AddWordBloc>().add(const SaveRequested()),
         style: ElevatedButton.styleFrom(
           backgroundColor: kPrimary,
           foregroundColor: Colors.white,

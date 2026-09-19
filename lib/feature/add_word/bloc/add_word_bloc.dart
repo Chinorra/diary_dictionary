@@ -67,10 +67,10 @@ class AddWordBloc extends Bloc<AddWordEvent, AddWordState> {
     ));
   }
 
-  void _onSuggestionSelected(
+  Future<void> _onSuggestionSelected(
     SuggestionSelected event,
     Emitter<AddWordState> emit,
-  ) {
+  ) async {
     _suggestionRequestId++;
     _suggestionDebounce?.cancel();
     emit(state.copyWith(
@@ -78,6 +78,7 @@ class AddWordBloc extends Bloc<AddWordEvent, AddWordState> {
       suggestions: const [],
       suggestionsVisible: false,
     ));
+    await _fetchDefinition(event.suggestion, emit);
   }
 
   void _onSuggestionsDismissed(
@@ -100,6 +101,13 @@ class AddWordBloc extends Bloc<AddWordEvent, AddWordState> {
     }
     if (state.isTranslating) return;
 
+    await _fetchDefinition(word, emit);
+  }
+
+  Future<void> _fetchDefinition(
+    String word,
+    Emitter<AddWordState> emit,
+  ) async {
     emit(state.copyWith(
       status: AddWordStatus.translating,
       suggestionsVisible: false,

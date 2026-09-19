@@ -22,7 +22,6 @@ class DictionaryApiClient {
         '$_dictionaryBase/${Uri.encodeComponent(trimmed)}',
         options: Options(
           receiveTimeout: const Duration(seconds: 30),
-          sendTimeout: const Duration(seconds: 30),
         ),
       );
       final data = response.data;
