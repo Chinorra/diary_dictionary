@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../../database/database.dart';
+import '../../category/repository/category_repository.dart';
 import '../models/dictionary_lookup.dart';
 import 'dictionary_api_client.dart';
 
@@ -8,11 +9,22 @@ class AddWordRepository {
   AddWordRepository({
     required AppDatabase database,
     DictionaryApiClient? apiClient,
+    CategoryRepository? categoryRepository,
   })  : _database = database,
-        _apiClient = apiClient ?? DictionaryApiClient();
+        _apiClient = apiClient ?? DictionaryApiClient(),
+        _categoryRepository =
+            categoryRepository ?? CategoryRepository(database: database);
 
   final AppDatabase _database;
   final DictionaryApiClient _apiClient;
+  final CategoryRepository _categoryRepository;
+
+  /// Categories a word can be filed under, including the ones the user
+  /// created on the Category screen.
+  Future<List<String>> getCategories() async {
+    final categories = await _categoryRepository.getCategories();
+    return [for (final category in categories) category.name];
+  }
 
   Future<List<String>> fetchSuggestions(String query) =>
       _apiClient.fetchSuggestions(query);

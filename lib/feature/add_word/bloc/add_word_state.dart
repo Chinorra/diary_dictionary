@@ -9,6 +9,10 @@ class AddWordState extends Equatable {
   final List<String> suggestions;
   final bool suggestionsVisible;
   final String category;
+
+  /// Categories offered by the picker. Starts as the canonical list so the
+  /// picker works before the stored categories arrive.
+  final List<String> categories;
   final String definition;
   final String example;
   final String partOfSpeech;
@@ -22,6 +26,7 @@ class AddWordState extends Equatable {
     this.suggestions = const [],
     this.suggestionsVisible = false,
     this.category = kDefaultWordCategory,
+    this.categories = kWordCategories,
     this.definition = '',
     this.example = '',
     this.partOfSpeech = '',
@@ -39,6 +44,7 @@ class AddWordState extends Equatable {
     List<String>? suggestions,
     bool? suggestionsVisible,
     String? category,
+    List<String>? categories,
     String? definition,
     String? example,
     String? partOfSpeech,
@@ -55,6 +61,7 @@ class AddWordState extends Equatable {
       suggestions: suggestions ?? this.suggestions,
       suggestionsVisible: suggestionsVisible ?? this.suggestionsVisible,
       category: category ?? this.category,
+      categories: categories ?? this.categories,
       definition: definition ?? this.definition,
       example: example ?? this.example,
       partOfSpeech: partOfSpeech ?? this.partOfSpeech,
@@ -73,6 +80,7 @@ class AddWordState extends Equatable {
         suggestions,
         suggestionsVisible,
         category,
+        categories,
         definition,
         example,
         partOfSpeech,

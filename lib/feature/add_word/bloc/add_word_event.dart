@@ -7,6 +7,11 @@ abstract class AddWordEvent extends Equatable {
   List<Object?> get props => const [];
 }
 
+/// Loads the categories the word can be filed under.
+class AddWordCategoriesRequested extends AddWordEvent {
+  const AddWordCategoriesRequested();
+}
+
 class WordQueryChanged extends AddWordEvent {
   final String query;
   const WordQueryChanged(this.query);

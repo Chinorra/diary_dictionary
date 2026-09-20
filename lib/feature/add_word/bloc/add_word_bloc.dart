@@ -9,6 +9,7 @@ import 'add_word_state.dart';
 
 class AddWordBloc extends Bloc<AddWordEvent, AddWordState> {
   AddWordBloc(this._repository) : super(const AddWordState()) {
+    on<AddWordCategoriesRequested>(_onCategoriesRequested);
     on<WordQueryChanged>(_onQueryChanged);
     on<SuggestionSelected>(_onSuggestionSelected);
     on<SuggestionsDismissed>(_onSuggestionsDismissed);
@@ -29,6 +30,19 @@ class AddWordBloc extends Bloc<AddWordEvent, AddWordState> {
   Future<void> close() {
     _suggestionDebounce?.cancel();
     return super.close();
+  }
+
+  Future<void> _onCategoriesRequested(
+    AddWordCategoriesRequested event,
+    Emitter<AddWordState> emit,
+  ) async {
+    try {
+      final categories = await _repository.getCategories();
+      if (categories.isEmpty) return;
+      emit(state.copyWith(categories: categories));
+    } catch (_) {
+      // The canonical list already in the state keeps the picker usable.
+    }
   }
 
   Future<void> _onQueryChanged(

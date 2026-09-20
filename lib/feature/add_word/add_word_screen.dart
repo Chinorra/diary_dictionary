@@ -8,7 +8,6 @@ import '../common/color/color.dart';
 import 'bloc/add_word_bloc.dart';
 import 'bloc/add_word_event.dart';
 import 'bloc/add_word_state.dart';
-import 'models/word_category.dart';
 import 'repository/add_word_repository.dart';
 
 class AddWordPage extends StatelessWidget {
@@ -21,7 +20,7 @@ class AddWordPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => AddWordBloc(
         AddWordRepository(database: database ?? AppDatabase.instance),
-      ),
+      )..add(const AddWordCategoriesRequested()),
       child: const _AddWordView(),
     );
   }
@@ -139,7 +138,10 @@ class _AddWordViewState extends State<_AddWordView> {
                     const SizedBox(height: 24),
                     const _FieldLabel('Category'),
                     const SizedBox(height: 8),
-                    _CategoryDropdown(category: state.category),
+                    _CategoryDropdown(
+                      category: state.category,
+                      categories: state.categories,
+                    ),
                     const SizedBox(height: 20),
                     const _FieldLabel('Definition'),
                     const SizedBox(height: 8),
@@ -447,9 +449,10 @@ class _FieldLabel extends StatelessWidget {
 }
 
 class _CategoryDropdown extends StatelessWidget {
-  const _CategoryDropdown({required this.category});
+  const _CategoryDropdown({required this.category, required this.categories});
 
   final String category;
+  final List<String> categories;
 
   @override
   Widget build(BuildContext context) {
@@ -472,7 +475,7 @@ class _CategoryDropdown extends StatelessWidget {
             color: kTextPrimary,
           ),
           items: [
-            for (final value in kWordCategories)
+            for (final value in categories)
               DropdownMenuItem<String>(
                 value: value,
                 child: Text(value),
