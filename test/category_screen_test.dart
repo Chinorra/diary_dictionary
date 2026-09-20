@@ -71,6 +71,126 @@ void main() {
     expect(find.text('Vocabulary Diary'), findsNothing);
   });
 
+  /// Opens the Category screen and taps the floating action button.
+  Future<void> openNewCategorySheet(WidgetTester tester) async {
+    await pumpPushed(tester, CategoryScreen(database: database));
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('the button opens a sheet that names the new category',
+      (tester) async {
+    await openNewCategorySheet(tester);
+    expect(find.text('New category'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'My Words');
+    await tester.pump();
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('New category'), findsNothing);
+    expect(find.text('My Words'), findsOneWidget);
+    expect(find.text('0 words'), findsWidgets);
+    // Stored, so it is still there the next time the screen is opened.
+    expect(await database.getUserCategoryNames(), ['My Words']);
+  });
+
+  testWidgets('the newest category is the first card', (tester) async {
+    await openNewCategorySheet(tester);
+    await tester.enterText(find.byType(TextField), 'Hobby');
+    await tester.pump();
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Sports');
+    await tester.pump();
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getCenter(find.text('Sports')).dy,
+      lessThan(tester.getCenter(find.text('Hobby')).dy),
+    );
+  });
+
+  testWidgets('a name already in use is refused with a message',
+      (tester) async {
+    await openNewCategorySheet(tester);
+
+    // 'Food' is a canonical category and already holds the saved word.
+    await tester.enterText(find.byType(TextField), 'food');
+    await tester.pump();
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('That category already exists.'), findsOneWidget);
+    // The sheet stays open so the name can be corrected.
+    expect(find.text('New category'), findsOneWidget);
+    expect(await database.getUserCategoryNames(), isEmpty);
+  });
+
+  testWidgets('nothing is created without a name', (tester) async {
+    await openNewCategorySheet(tester);
+
+    final addButton = tester.widget<ElevatedButton>(
+      find.widgetWithText(ElevatedButton, 'Add'),
+    );
+    expect(addButton.onPressed, isNull);
+
+    await tester.enterText(find.byType(TextField), '   ');
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ElevatedButton>(find.widgetWithText(ElevatedButton, 'Add'))
+          .onPressed,
+      isNull,
+    );
+
+    // Tapping outside the sheet closes it without creating anything.
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+
+    expect(find.text('New category'), findsNothing);
+    expect(await database.getUserCategoryNames(), isEmpty);
+  });
+
+  testWidgets('the sheet has one full-width Add button', (tester) async {
+    await openNewCategorySheet(tester);
+
+    expect(find.widgetWithText(ElevatedButton, 'Add'), findsOneWidget);
+    expect(find.text('Cancel'), findsNothing);
+
+    // Full width: as wide as the name field above it.
+    final fieldWidth = tester
+        .getSize(
+          find
+              .ancestor(
+                of: find.byType(TextField),
+                matching: find.byType(Container),
+              )
+              .first,
+        )
+        .width;
+    final buttonWidth =
+        tester.getSize(find.widgetWithText(ElevatedButton, 'Add')).width;
+    expect(buttonWidth, moreOrLessEquals(fieldWidth, epsilon: 1));
+  });
+
+  testWidgets('a created category opens like any other', (tester) async {
+    await openNewCategorySheet(tester);
+    await tester.enterText(find.byType(TextField), 'Hobby');
+    await tester.pump();
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Hobby'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SingleCategoryScreen), findsOneWidget);
+  });
+
   testWidgets('a category title shares one line with the back button',
       (tester) async {
     await pumpPushed(

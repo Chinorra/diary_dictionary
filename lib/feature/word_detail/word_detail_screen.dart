@@ -411,7 +411,7 @@ class _EditableTextField extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
-            color: isEditing ? kSurface : kBackground,
+            color: kSurface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isEditing ? kPrimary : kDivider,
@@ -476,7 +476,7 @@ class _CategoryField extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
-            color: isEditing ? kSurface : kBackground,
+            color: kSurface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isEditing ? kPrimary : kDivider,
@@ -576,7 +576,8 @@ class _SaveBar extends StatelessWidget {
         SizedBox(
           height: 52,
           child: ElevatedButton(
-            onPressed: canSave ? () => bloc.add(const WordSaveRequested()) : null,
+            onPressed:
+                canSave ? () => bloc.add(const WordSaveRequested()) : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: kPrimary,
               foregroundColor: Colors.white,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:my_dictionary/feature/add_word/add_word_screen.dart';
 import 'package:my_dictionary/feature/common/color/color.dart';
+import 'package:my_dictionary/feature/common/widget/primary_fab.dart';
 import 'package:my_dictionary/feature/common/widget/word_card.dart';
 import 'package:my_dictionary/feature/home_screen/home_screen.dart';
 import 'package:my_dictionary/feature/word_detail/word_detail_screen.dart';
@@ -100,7 +101,10 @@ class _AllWordViewState extends State<_AllWordView>
               database: widget.database,
             ),
           ),
-          floatingActionButton: _AddWordFAB(onPressed: _openAddWord),
+          floatingActionButton: PrimaryFab(
+            onPressed: _openAddWord,
+            tooltip: 'Add a new word',
+          ),
         );
       },
     );
@@ -477,34 +481,3 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
-class _AddWordFAB extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _AddWordFAB({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: kPrimary.withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: FloatingActionButton(
-        onPressed: onPressed,
-        backgroundColor: kPrimary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Icon(Icons.add_rounded, size: 26),
-      ),
-    );
-  }
-}

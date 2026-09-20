@@ -1,7 +1,9 @@
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_dictionary/database/database.dart';
 import 'package:my_dictionary/feature/add_word/models/word_category.dart';
 import 'package:my_dictionary/feature/category/models/category_summary.dart';
+import 'package:my_dictionary/feature/category/repository/category_repository.dart';
 import 'package:my_dictionary/feature/single_category/bloc/single_category_bloc.dart';
 import 'package:my_dictionary/feature/single_category/bloc/single_category_event.dart';
 import 'package:my_dictionary/feature/single_category/bloc/single_category_state.dart';
@@ -75,6 +77,119 @@ void main() {
         summaries.firstWhere((s) => s.name == 'Animal').wordCount,
         2,
       );
+    });
+  });
+
+  group('user-created categories', () {
+    test('are listed first, newest first, with their word counts', () {
+      final summaries = buildCategorySummaries(
+        {'Hobby': 2, 'Food': 1},
+        userCategories: ['New Category 2', 'Hobby'],
+      );
+
+      expect(
+        summaries.take(2).map((s) => s.name),
+        ['New Category 2', 'Hobby'],
+      );
+      expect(summaries.first.wordCount, 0);
+      expect(summaries.first.isEmpty, isTrue);
+      expect(summaries[1].wordCount, 2);
+      // The canonical list still follows, unchanged.
+      expect(
+        summaries.skip(2).take(kWordCategories.length).map((s) => s.name),
+        kWordCategories,
+      );
+    });
+
+    test('are not duplicated by the words saved in them', () {
+      final summaries = buildCategorySummaries(
+        {'Hobby': 1},
+        userCategories: ['Hobby'],
+      );
+
+      expect(summaries.where((s) => s.name == 'Hobby'), hasLength(1));
+      expect(summaries.length, kWordCategories.length + 1);
+    });
+
+    test('never shadow a canonical category', () {
+      final summaries = buildCategorySummaries(
+        const {},
+        userCategories: ['Food'],
+      );
+
+      expect(summaries.where((s) => s.name == 'Food'), hasLength(1));
+      expect(summaries.map((s) => s.name), kWordCategories);
+    });
+  });
+
+  group('category names', () {
+    test('sanitizing trims and collapses the spaces the user typed', () {
+      expect(sanitizeCategoryName('  My   Words '), 'My Words');
+      expect(sanitizeCategoryName('   '), '');
+    });
+
+    test('duplicates are spotted whatever the case or spacing', () {
+      final existing = ['Food', 'My Words'];
+
+      expect(isDuplicateCategoryName(existing, 'food'), isTrue);
+      expect(isDuplicateCategoryName(existing, '  MY   WORDS  '), isTrue);
+      expect(isDuplicateCategoryName(existing, 'Hobby'), isFalse);
+    });
+  });
+
+  group('CategoryRepository.createCategory', () {
+    late AppDatabase database;
+    late CategoryRepository repository;
+
+    setUp(() {
+      database = AppDatabase.forTesting(NativeDatabase.memory());
+      repository = CategoryRepository(database: database);
+    });
+
+    tearDown(() async {
+      await database.close();
+    });
+
+    test('stores the typed name and lists it first', () async {
+      final categories = await repository.createCategory('  My   Words ');
+
+      expect(categories.first.name, 'My Words');
+      expect(categories.first.wordCount, 0);
+      expect(await database.getUserCategoryNames(), ['My Words']);
+    });
+
+    test('rejects a name that is already taken, ignoring case', () async {
+      await repository.createCategory('Hobby');
+
+      expect(
+        () => repository.createCategory('hobby'),
+        throwsA(isA<CategoryNameException>().having(
+          (e) => e.message,
+          'message',
+          'That category already exists.',
+        )),
+      );
+      expect(await database.getUserCategoryNames(), ['Hobby']);
+    });
+
+    test('rejects a canonical category name', () async {
+      expect(
+        () => repository.createCategory('Food'),
+        throwsA(isA<CategoryNameException>()),
+      );
+      expect(await database.getUserCategoryNames(), isEmpty);
+    });
+
+    test('rejects a blank name', () async {
+      expect(
+        () => repository.createCategory('   '),
+        throwsA(isA<CategoryNameException>().having(
+          (e) => e.message,
+          'message',
+          'Please enter a category name.',
+        )),
+      );
+      expect(await database.getUserCategoryNames(), isEmpty);
     });
   });
 

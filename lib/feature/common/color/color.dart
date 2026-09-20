@@ -7,3 +7,4 @@ const kSurface = Colors.white;
 const kTextPrimary = Color(0xFF1A2332);
 const kTextSecondary = Color(0xFF6B7A8D);
 const kDivider = Color(0xFFEDF0F4);
+const kError = Color(0xFFD5544F);
